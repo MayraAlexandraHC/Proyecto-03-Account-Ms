@@ -1,0 +1,178 @@
+openapi: 3.0.3
+info:
+  title: Account Management API
+  description: API para gestión de cuentas bancarias del banco XYZ
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8686
+    description: Servidor de desarrollo
+
+paths:
+  /cuentas:
+    post:
+      summary: Crear una nueva cuenta
+      operationId: crearCuenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cuenta'
+      responses:
+        '201':
+          description: Cuenta creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Listar todas las cuentas
+      operationId: listarCuentas
+      responses:
+        '200':
+          description: Lista de cuentas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cuenta'
+
+  /cuentas/{id}:
+    get:
+      summary: Obtener detalles de una cuenta por ID
+      operationId: obtenerCuenta
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalles de la cuenta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '404':
+          description: Cuenta no encontrada
+
+  /cuentas/{cuentaId}/depositar:
+    put:
+      summary: Realizar un depósito
+      operationId: depositarDinero
+      parameters:
+        - name: cuentaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaccion'
+      responses:
+        '200':
+          description: Depósito realizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '400':
+          description: Error en la transacción
+
+  /cuentas/{cuentaId}/retirar:
+    put:
+      summary: Realizar un retiro
+      operationId: retirarDinero
+      parameters:
+        - name: cuentaId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaccion'
+      responses:
+        '200':
+          description: Retiro realizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '400':
+          description: Error en la transacción
+
+    delete:
+      summary: Eliminar una cuenta
+      operationId: eliminarCuenta
+      parameters:
+        - name: cuentaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cuenta eliminada exitosamente
+        '400':
+          description: Error al eliminar cuenta
+
+components:
+  schemas:
+    Cuenta:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        numeroCuenta:
+          type: string
+          readOnly: true
+        saldo:
+          type: number
+          format: double
+          minimum: 0
+        tipoCuenta:
+          type: string
+          enum: [AHORROS, CORRIENTE]
+        clienteId:
+          type: string
+
+    Transaccion:
+      type: object
+      required:
+        - monto
+      properties:
+        monto:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Monto de la transacción
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+        status:
+          type: integer
+          format: int32
